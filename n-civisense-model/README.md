@@ -1,41 +1,53 @@
-
-
 # N-ATLaS API (Google Cloud CPU Edition)
 
-**N-ATLaS** is a production-ready, cost-optimized FastAPI service designed to run the **N-ATLaS LLM** (Nigerian Atlas for Languages & AI at Scale) efficiently on CPU infrastructure.
+**N-ATLaS** is a production-ready, cost-optimized **FastAPI** service designed to run the **N-ATLaS LLM** (Nigerian Atlas for Languages & AI at Scale) efficiently on **CPU-only infrastructure**.
 
-By leveraging **GGUF quantization** and **Llama.cpp**, this version allows you to deploy a powerful 8B parameter model on affordable cloud instances without requiring expensive GPUs.
-
-### Key Capabilities:
-*  **Multilingual Chat:** Native support for English, Hausa, Igbo, and Yoruba.
-*  **CPU Inference:** High-speed token generation using `llama-cpp-python`.
-*  **Voice Intelligence:** Speech-to-Text powered by OpenAI Whisper (CPU optimized).
-*  **Context Guardrails:** RapidFuzz-based filtering for strict domain adherence (NIMC, FIRS, FRSC).
-*  **Session Memory:** Redis-backed conversation history.
+By leveraging **GGUF quantization** and **Llama.cpp**, this version enables deployment of a powerful **8B parameter model** on affordable cloud instances without requiring expensive GPUs.
 
 ---
 
-## Architecture Overview
+## 🚀 Key Capabilities
 
-This architecture is designed for the **Google Cloud C4 / E2 Series**, maximizing performance while minimizing cost.
+- **Multilingual Chat**  
+  Native support for **English, Hausa, Igbo, and Yoruba**.
+
+- **CPU Inference**  
+  High-speed token generation using `llama-cpp-python`.
+
+- **Voice Intelligence**  
+  Speech-to-Text powered by **OpenAI Whisper** (CPU-optimized).
+
+- **Context Guardrails**  
+  RapidFuzz-based filtering for strict domain adherence  
+  *(NIMC, FIRS, FRSC)*.
+
+- **Session Memory**  
+  Redis-backed conversation history.
+
+---
+
+## 🏗 Architecture Overview
+
+Designed for **Google Cloud C4 / E2 Series**, maximizing performance while minimizing cost.
 
 ```mermaid
 graph TD
-    Client[Client (Web/Mobile)] -->|HTTP / SSE| NGINX
-    NGINX -->|Reverse Proxy| FastAPI
-    
+    Client["Client (Web/Mobile)"] -->|"HTTP / SSE"| NGINX
+    NGINX -->|"Reverse Proxy"| FastAPI
+
     subgraph "GCP Compute Engine (C4-Standard-4)"
-        FastAPI[FastAPI Service]
-        
-        FastAPI -->|Check Scope| RapidFuzz[RapidFuzz Guardrail]
-        FastAPI -->|Read/Write History| Redis[(Redis DB)]
-        
-        FastAPI -->|Inference| LlamaCPP[Llama.cpp Engine]
-        LlamaCPP -->|Load Model| RAM[System RAM (16GB)]
-        
-        FastAPI -->|Audio Upload| Whisper[OpenAI Whisper]
-        Whisper -->|Process| FFMPEG
+        FastAPI["FastAPI Service"]
+
+        FastAPI -->|"Check Scope"| RapidFuzz["RapidFuzz Guardrail"]
+        FastAPI -->|"Read/Write History"| Redis[("Redis DB")]
+
+        FastAPI -->|"Inference"| LlamaCPP["Llama.cpp Engine"]
+        LlamaCPP -->|"Load Model"| RAM["System RAM (16GB)"]
+
+        FastAPI -->|"Audio Upload"| Whisper["OpenAI Whisper"]
+        Whisper -->|"Process"| FFMPEG
     end
+
 ````
 
 -----
