@@ -1,310 +1,175 @@
-# N-ATLaS API
 
-**N-ATLaS is a GPU‑accelerated, production‑ready FastAPI service for:
 
-* 💬 Conversational LLM inference (streaming & non‑streaming)
-* 🎙️ Speech‑to‑Text (Whisper)
-* 🧠 Contextual memory & retrieval (Redis)
-* 🚀 Optimized deployment on **DigitalOcean GPU Droplets** using Docker
+# N-ATLaS API (Google Cloud CPU Edition)
 
-This repository is designed for **real‑world deployment**, not demos or notebooks.
+**N-ATLaS** is a production-ready, cost-optimized FastAPI service designed to run the **N-ATLaS LLM** (Nigerian Atlas for Languages & AI at Scale) efficiently on CPU infrastructure.
 
----
+By leveraging **GGUF quantization** and **Llama.cpp**, this version allows you to deploy a powerful 8B parameter model on affordable cloud instances without requiring expensive GPUs.
 
-## ✨ Features
-
-* **FastAPI backend** with async endpoints
-* **Token streaming (SSE)** for chat responses
-* **Hugging Face Transformers** (GPU‑accelerated)
-* **Whisper speech‑to‑text** with FFmpeg
-* **Redis** for conversation memory & caching
-* **Docker + Docker Compose** (reproducible builds)
-* **NGINX‑friendly** (buffering disabled for streaming)
-* **Scales vertically** on A10 / A100 GPUs
+### Key Capabilities:
+*  **Multilingual Chat:** Native support for English, Hausa, Igbo, and Yoruba.
+*  **CPU Inference:** High-speed token generation using `llama-cpp-python`.
+*  **Voice Intelligence:** Speech-to-Text powered by OpenAI Whisper (CPU optimized).
+*  **Context Guardrails:** RapidFuzz-based filtering for strict domain adherence (NIMC, FIRS, FRSC).
+*  **Session Memory:** Redis-backed conversation history.
 
 ---
 
-## 🧱 Architecture Overview
+## Architecture Overview
 
-```
-Client (Web / Mobile)
-        │
-        │  HTTP / SSE
-        ▼
-     NGINX
-        │
-        ▼
- FastAPI (N‑ATLaS)
-        │
-        ├── LLM Inference (GPU)
-        ├── Whisper STT (GPU)
-        └── Redis (Context / Cache)
-```
+This architecture is designed for the **Google Cloud C4 / E2 Series**, maximizing performance while minimizing cost.
 
----
+```mermaid
+graph TD
+    Client[Client (Web/Mobile)] -->|HTTP / SSE| NGINX
+    NGINX -->|Reverse Proxy| FastAPI
+    
+    subgraph "GCP Compute Engine (C4-Standard-4)"
+        FastAPI[FastAPI Service]
+        
+        FastAPI -->|Check Scope| RapidFuzz[RapidFuzz Guardrail]
+        FastAPI -->|Read/Write History| Redis[(Redis DB)]
+        
+        FastAPI -->|Inference| LlamaCPP[Llama.cpp Engine]
+        LlamaCPP -->|Load Model| RAM[System RAM (16GB)]
+        
+        FastAPI -->|Audio Upload| Whisper[OpenAI Whisper]
+        Whisper -->|Process| FFMPEG
+    end
+````
 
-## 📁 Project Structure
+-----
+
+## Project Structure
 
 ```
 n-atlas-api/
-├── app.py                 # FastAPI entry point
-├── requirements.txt       # Python dependencies
-├── Dockerfile             # GPU‑ready container
-├── docker-compose.yml     # API + Redis
-├── .env.example           # Environment variable template
-├── README.md              # This file
-└── utils/                 # Helpers (LLM, audio, memory, etc.)
+├── app.py                 # Main FastAPI application
+├── requirements.txt       # CPU-optimized dependencies
+├── n-atlas-model.gguf     # Quantized Model File (Downloaded on startup)
+├── .env                   # Configuration secrets
+└── README.md              # Documentation
 ```
 
----
 
-## 🔐 Environment Variables
 
-Create a `.env` file **on the server** (never commit it).
+## Requirements & Infrastructure
 
-```env
-# Model
-MODEL_NAME=NCAIR1/N-ATLaS
-HF_TOKEN=your_huggingface_token
+### Recommended Cloud Spec (Google Cloud)
 
-# Whisper
-WHISPER_MODEL=base
+To run this efficiently without crashing, use the following VM configuration:
 
-# Runtime
-USE_REMOTE_INFERENCE=false
-MAX_CONCURRENT_GENERATIONS=1
+  * **Platform:** Google Compute Engine
+  * **Machine Series:** **C4** (Compute Optimized) or **E2** (Cost Optimized)
+  * **Machine Type:** `c3-standard-4` (4 vCPU, 15GB RAM)
+  * **OS Image:** **Ubuntu 22.04 LTS** (x86/64)
+      * *⚠️ Warning: Do not use "Deep Learning VM" images as they waste disk space with unused GPU drivers.*
+  * **Disk Size:** 50 GB (Balanced Persistent Disk)
 
-# Redis
-REDIS_URL=redis://redis:6379/0
+### System Dependencies
 
-# Server
-HOST=0.0.0.0
-PORT=8000
+  * Python 3.10+
+  * FFmpeg (Required for Whisper)
+  * Redis Server
 
-# Logging
-LOG_LEVEL=info
-```
+-----
 
----
+##  Deployment Guide (Ubuntu)
 
-## 📦 Requirements
+###  System Setup
 
-### Local (for development)
-
-* Python 3.10+
-* FFmpeg
-* Redis
-* NVIDIA GPU (optional but recommended)
-
-### Production (recommended)
-
-* **DigitalOcean GPU Droplet**
-* Ubuntu 22.04
-* Docker + Docker Compose
-* NVIDIA Container Toolkit
-
----
-
-## 🐳 Docker Setup (Recommended)
-
-### Dockerfile (GPU‑enabled)
-
-* CUDA 12
-* cuDNN 8
-* Optimized for inference workloads
-
-### docker‑compose.yml
-
-Includes:
-
-* `api` – N‑ATLaS FastAPI service
-* `redis` – context & caching layer
-
-GPU access is enabled via:
-
-```yaml
-deploy:
-  resources:
-    reservations:
-      devices:
-        - driver: nvidia
-          count: all
-          capabilities: [gpu]
-```
-
----
-
-## 🚀 Deployment (DigitalOcean GPU Droplet)
-
-### 1️⃣ Clone the repository
+SSH into your Google Cloud VM and install the necessary system tools:
 
 ```bash
-git clone https://github.com/anthon793/n-atlas-api.git
-cd n-atlas-api
+sudo apt update
+sudo apt install -y python3-pip python3-venv build-essential python3-dev ffmpeg redis-server
 ```
 
-### 2️⃣ Configure environment
+### Configure Redis
+
+Start the database service:
 
 ```bash
-cp .env.example .env
-nano .env
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
+# Test connection
+redis-cli ping  # Should return "PONG"
 ```
 
-### 3️⃣ Build & start services
+### Python Environment
+
+Clone your code (or upload files via SFTP) and set up the virtual environment:
 
 ```bash
-docker compose build
-docker compose up -d
+# Create environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install CPU-optimized PyTorch first
+pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cpu](https://download.pytorch.org/whl/cpu)
+
+# Install remaining dependencies
+pip install -r requirements.txt
 ```
 
-### 4️⃣ Verify
+### Run the Server
+
+Use `uvicorn` to start the API. The model will auto-download on the first run (approx 5GB).
+
+**For Testing (Foreground):**
 
 ```bash
-docker logs -f n-atlas-api
+sudo ./venv/bin/uvicorn app:app --host 0.0.0.0 --port 80
 ```
 
----
-
-## 🌐 NGINX Configuration (CRITICAL)
-
-Streaming **will break** if buffering is enabled.
-
-```nginx
-location / {
-    proxy_pass http://127.0.0.1:8000;
-    proxy_http_version 1.1;
-    proxy_set_header Connection "";
-    proxy_buffering off;
-    proxy_cache off;
-    chunked_transfer_encoding on;
-}
-```
-
----
-
-## 📡 API Endpoints
-
-### Health Check
-
-```
-GET /health
-```
-
-Response:
-
-```json
-{"status": "ok"}
-```
-
----
-
-### Chat (Non‑Streaming)
-
-```
-POST /chat
-```
-
-```json
-{
-  "message": "Explain transformers",
-  "session_id": "user123"
-}
-```
-
----
-
-### Chat (Streaming – SSE)
-
-```
-POST /chat/stream
-```
-
-* Returns token‑by‑token output
-* Requires NGINX buffering disabled
-
----
-
-### Audio Transcription
-
-```
-POST /audio/transcribe
-```
-
-* Accepts audio file (wav, mp3, m4a)
-* Uses Whisper on GPU
-
----
-
-## 🧠 Memory & Context
-
-* Conversation history stored in **Redis**
-* Session‑based context (`session_id`)
-* Automatic truncation to fit model limits
-
----
-
-## ⚙️ Performance Notes
-
-* Limit concurrent generations on small GPUs
-* A10: `MAX_CONCURRENT_GENERATIONS=1–2`
-* A100: `MAX_CONCURRENT_GENERATIONS=4+`
-* Use `bitsandbytes` for lower VRAM usage
-
----
-
-## 🔒 Security Best Practices
-
-* Never expose Redis publicly
-* Use HTTPS (TLS) via NGINX
-* Rotate Hugging Face tokens regularly
-* Restrict firewall to ports 22, 80, 443
-
----
-
-## 🧪 Testing
+**For Production (Background Service):**
 
 ```bash
-curl http://localhost:8000/health
+sudo nohup ./venv/bin/uvicorn app:app --host 0.0.0.0 --port 80 > server.log 2>&1 &
 ```
 
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello"}'
-```
+-----
 
----
+##  API Endpoints
 
-## 🛣️ Roadmap
+### 1\. Streaming Chat (SSE)
 
-* [ ] Authentication & rate limiting
-* [ ] Multi‑tenant session isolation
-* [ ] Vector database integration
-* [ ] Prometheus metrics
-* [ ] CI/CD (GitHub Actions)
+Designed for real-time typewriter effects.
 
----
+  * **URL:** `POST /chat/stream`
+  * **Body:**
+    ```json
+    {
+      "text": "Yaya zan yi in sami katina na NIN?",
+      "context": "NIMC",
+      "session_id": "user-123"
+    }
+    ```
+  * **Response:** A stream of server-sent events (`data: {"type": "token", "text": "..."}`).
 
-## 📜 License
+### 2\. Audio Transcription
 
-MIT License
+Upload a voice note to get text back.
 
----
+  * **URL:** `POST /audio/transcribe`
+  * **Body:** `multipart/form-data` with file field `file`.
+  * **Response:** `{"text": "How do I register my car?"}`
 
-## 🤝 Contributing
+### 3\. Clear Session
 
-Pull requests are welcome.
-Please open an issue for major changes before submitting.
+Wipe the Redis memory for a specific user.
 
----
+  * **URL:** `DELETE /session/{session_id}`
 
-## 📫 Support
+-----
 
-For deployment, scaling, or optimization questions:
+##  Performance & Optimization
 
-* Open an issue
-* Or contact the maintainer directly
+  * **Quantization:** This deployment uses **4-bit quantization (Q4\_K\_M)**. This reduces memory usage from \~16GB to \~6GB with negligible loss in accuracy.
+  * **FP32 Mode:** Whisper is explicitly set to use `fp32` to avoid CPU warnings and ensure transcription accuracy on non-GPU hardware.
+  * **Context Guardrails:** The `RapidFuzz` logic runs *before* the LLM. If a user asks "Who is Messi?", the request is rejected instantly (0ms latency cost), saving CPU cycles for valid government queries.
 
----
+-----
 
-**N‑ATLaS is built for real workloads, real users, and real GPUs.** 🚀
+
+
