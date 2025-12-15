@@ -15,7 +15,7 @@ Follow the steps below to set up and run this FastAPI project locally.
 
 ### 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/fredrickray/n-civisense-api.git
+git clone https://github.com/Nextar001/n-civisense.git
 cd n-civisense-api
 ````
 
