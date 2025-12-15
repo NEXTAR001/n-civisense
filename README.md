@@ -69,14 +69,6 @@ git clone https://github.com/Nextar001/n-civisense.git
 cd civisense
 ```
 
-### Backend Setup (AI Engine)
-
-The backend handles the heavy lifting. Navigate to the backend folder:
-
-```bash
-cd backend
-```
-
 
 # 🚀 FastAPI Project — Installation Guide
 
