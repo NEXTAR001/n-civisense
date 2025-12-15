@@ -76,7 +76,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/civisense.git
+git clone https://github.com/Nextar001/n-civisense.git
 cd civisense
 ```
 
@@ -239,7 +239,7 @@ A leading Nigerian technology company specializing in AI and quantum computing s
 
 ## Links
 
-- [N-ATLaS Model](https://huggingface.co/tosinamuda/N-ATLaS-GGUF)
+- [N-ATLaS Model](https://huggingface.co/NCAIR1/N-ATLaS)
 
 ---
 
