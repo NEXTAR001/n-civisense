@@ -8,16 +8,11 @@ services:
       - .env
     ports:
       - "8000:8000"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     depends_on:
       - redis
 
   redis:
     image: redis:7
     container_name: n-atlas-redis
+    ports:
+      - "6379:6379" 
