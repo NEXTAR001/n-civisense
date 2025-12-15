@@ -31,31 +31,6 @@ This repository is a **monorepo** containing the Next.js Frontend and the GPU-fr
   * **Voice Intelligence:** Integrated **OpenAI Whisper** (CPU optimized) for speech-to-text, allowing voice queries in local accents.
   * **Cost-Optimized Inference:** Runs high-performance inference on standard CPUs using **Llama.cpp** and **GGUF quantization**, eliminating the need for expensive GPUs.
 
------
-
-## Architecture Overview
-
-The system is designed for cost-efficiency on **Google Cloud (C4/E2 Series)**.
-
-```mermaid
-graph TD
-    User((Citizen)) -->|Voice/Text| NextJS[Frontend (Next.js)]
-    NextJS -->|HTTP / SSE| NGINX[Reverse Proxy]
-    NGINX -->|API Request| FastAPI[Backend API]
-    
-    subgraph "GCP Compute Engine (CPU Optimized)"
-        FastAPI -->|Guardrails| RapidFuzz[Scope Check]
-        FastAPI -->|Session Memory| Redis[(Redis DB)]
-        
-        FastAPI -->|Inference| LlamaCPP[Llama.cpp Engine]
-        LlamaCPP -->|Context| Model[N-ATLaS GGUF Model]
-        
-        FastAPI -->|Audio Processing| Whisper[OpenAI Whisper]
-        Whisper -->|Decode| FFMPEG[FFmpeg]
-    end
-```
-
------
 
 ##  Tech Stack
 
@@ -90,7 +65,7 @@ graph TD
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/civisense.git
+git clone https://github.com/Nextar001/n-civisense.git
 cd civisense
 ```
 
@@ -102,45 +77,67 @@ The backend handles the heavy lifting. Navigate to the backend folder:
 cd backend
 ```
 
-**Install System Dependencies (Ubuntu/Debian):**
 
+# 🚀 FastAPI Project — Installation Guide
+
+Follow the steps below to set up and run this FastAPI project locally.
+
+---
+
+## 🔧 **Prerequisites**
+- Python 3.10+
+- Git
+
+---
+
+## 🛠️ **Installation**
+
+### 1️⃣ Clone the repository
 ```bash
-sudo apt update && sudo apt install -y ffmpeg redis-server python3-venv
-sudo systemctl start redis-server
-```
+git clone https://github.com/fredrickray/n-civisense-api.git
+cd n-civisense-api
+````
 
-**Setup Python Environment:**
+### 2️⃣ Create and activate a virtual environment
+
+#### macOS / Linux:
 
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate
+```
 
-# Install CPU-optimized PyTorch first
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+#### Windows:
 
-# Install application dependencies
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3️⃣ Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-**Configure Environment:**
-Create a `.env` file in `/backend`:
-
-```env
-MODEL_REPO=QuantFactory/N-ATLaS-GGUF
-MODEL_FILE=N-ATLaS.Q4_K_M.gguf
-WHISPER_MODEL=base
-REDIS_HOST=localhost
-REDIS_PORT=6379
-N_THREADS=4
-```
-
-**Run the Server:**
+### 4️⃣ Set up environment variables
 
 ```bash
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+cp .env.example .env
 ```
 
-*Note: The first run will download the \~5GB Model file automatically.*
+Edit `.env` and add your configuration values.
+
+### 5️⃣ Run database migrations (if applicable)
+
+```bash
+alembic upgrade head
+```
+
+### 6️⃣ Start the development server
+```bash
+uvicorn app.main:app --reload
+```
 
 ### Frontend Setup (Client)
 
