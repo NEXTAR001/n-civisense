@@ -55,7 +55,7 @@ graph TD
 ## Project Structure
 
 ```
-n-atlas-api/
+n-civisense-model/
 ├── app.py                 # Main FastAPI application
 ├── requirements.txt       # CPU-optimized dependencies
 ├── n-atlas-model.gguf     # Quantized Model File (Downloaded on startup)
