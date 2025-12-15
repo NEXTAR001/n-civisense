@@ -166,7 +166,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 npm run dev
 ```
 
-Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) to start using n-CiviSense.
+Open [https://civisense-one.vercel.app/](https://civisense-one.vercel.app/) to start using n-CiviSense.
 
 -----
 
