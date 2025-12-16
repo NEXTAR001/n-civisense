@@ -165,6 +165,13 @@ npm run dev
 
 Open [https://civisense-one.vercel.app/](https://civisense-one.vercel.app/) to start using n-CiviSense.
 
+### To login to the platform, you can use these credentials:
+```json
+{
+    "email": "newUser2@gmail.com",
+    "password": "newPassword@1"
+}
+```
 -----
 
 ##  API Reference
