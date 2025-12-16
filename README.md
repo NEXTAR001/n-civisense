@@ -131,6 +131,11 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
+### To access the Swagger docs/panel, type this url in your browser:
+```bash
+http://127.0.0.1:8000/docs#/
+```
+
 ### Frontend Setup (Client)
 
 Open a new terminal and navigate to the frontend folder:
